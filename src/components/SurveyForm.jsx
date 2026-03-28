@@ -83,10 +83,13 @@ export function SurveyForm() {
     return (
       <div className={styles.surveyContainer}>
         <div className={styles.successMessage}>
-          <div className={styles.successIcon}>✨</div>
+          <div className={styles.successIcon}>🥳</div>
           <h2 className={styles.surveyTitle}>Thank you!</h2>
           <p className={styles.surveyDescription}>
-            Your feedback helps us make a huge difference.
+            Your feedback helps us make a huge difference. 
+          </p>
+          <p className={styles.surveyDescriptionend}>
+           You can close this window
           </p>
         </div>
       </div>
