@@ -68,8 +68,8 @@ export function SurveyForm() {
     ]);
 
     if (error) {
-      console.error(error);
-      setSubmitError('Something went wrong. Please try again.');
+      console.error('Supabase insert error:', error);
+      setSubmitError(error.message || 'Something went wrong. Please try again.');
       setIsSubmitting(false);
       return;
     }
