@@ -1,20 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { SurveyForm } from '@/components/SurveyForm';
+import Image from 'next/image';
 
-export default function SignupRootPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace('/signup/email');
-  }, [router]);
-
+export default function SurveyPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black text-white">
-      <div className="animate-pulse font-light tracking-widest text-sm uppercase opacity-50">
-        Initializing...
+    <main className="flex min-h-screen flex-col items-center justify-center bg-black px-6 py-12">
+      <div className="w-full max-w-[1300px] animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <SurveyForm />
       </div>
-    </div>
+
+    </main>
   );
 }
