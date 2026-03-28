@@ -46,6 +46,11 @@ export function SurveyForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!supabase) {
+      setSubmitError('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and anon key.');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
