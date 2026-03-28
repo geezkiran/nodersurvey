@@ -106,14 +106,20 @@ export function SurveyForm() {
           <p className={styles.surveyTagline}>
             Share a few quick answers and help us build better tools for your workflow.
           </p>
-          <input
-            type="email"
-            className={styles.textArea}
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <div className={styles.floatingInputGroup}>
+            <input
+              id="email"
+              type="email"
+              className={`${styles.textArea} ${styles.floatingInputField}`}
+              placeholder=" "
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <label htmlFor="email" className={styles.floatingInputLabel}>
+              Email
+            </label>
+          </div>
           {step === 0 && (
             <button
               type="button"
