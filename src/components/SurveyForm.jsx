@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './survey-form.module.css';
 import { supabase } from '@/utils/supabase';
 
-const ROLES = ['Developer', 'Designer', 'Product Manager', 'Founder', 'Student', 'Other'];
+const ROLES = ['Developer', 'Designer', 'Founder', 'Product Manager', 'Student', 'Other'];
 const INTERESTS = ['AI Agents', 'Real-time Apps', 'Deployment', 'Database', 'Auth', 'Scalability'];
 const INTEREST_AREAS = ['AI', 'Realtime', 'Database', 'Auth', 'Deployment', 'Product'];
 const AGE_GROUPS = ['<18', '18-22', '23-27', '28-34', '35-46', '47+'];
 const PROFESSIONS = ['Corporate', 'Government', 'Startup', 'Student', 'Freelance', 'Other'];
-const GENDERS = ['Female', 'Male', 'Other'];
+const GENDERS = ['Male', 'Female', 'Other'];
 
 export function SurveyForm() {
   const [role, setRole] = useState('');
@@ -18,6 +18,7 @@ export function SurveyForm() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [countdown, setCountdown] = useState(7);
   const [step, setStep] = useState(0);
   const totalSteps = 3;
 
@@ -43,6 +44,21 @@ export function SurveyForm() {
       surveyRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
     }
   }, [step]);
+
+  useEffect(() => {
+    if (!submitted) return;
+
+    if (countdown === 0) {
+      window.location.reload();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown(countdown - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [submitted, countdown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,7 +105,7 @@ export function SurveyForm() {
             Your feedback helps us make a huge difference. 
           </p>
           <p className={styles.surveyDescriptionend}>
-           You can close this window
+            Redirecting in <light>{countdown}</light> seconds...
           </p>
         </div>
       </div>
@@ -99,9 +115,9 @@ export function SurveyForm() {
   return (
     <div ref={surveyRef} className={styles.surveyContainer}>
 
-      <div className={styles.stepCard}>
+      <div className={`${styles.stepCard} ${step !== 0 ? styles.hiddenSection : ''}`}>
         <header className={styles.stepCardHeader}>
-          <div className={styles.stepIndicator}>Step 1 of {totalSteps}</div>
+          {step === 0 && <div className={styles.stepIndicator}>Step 1 of {totalSteps}</div>}
           <h1 className={styles.surveyTitle}>
             Help us create something that{' '}
             <span className={styles.matters}>matters.</span>
@@ -138,11 +154,11 @@ export function SurveyForm() {
 
       <div className={`${styles.stepCard} ${styles.stepTwoCard} ${step !== 1 ? styles.hiddenSection : ''}`}>
         <form className={styles.stepCardContent} onSubmit={(e) => e.preventDefault()}>
-          <div className={styles.stepIndicator}>Step 2 of {totalSteps}</div>
+          {step === 1 && <div className={styles.stepIndicator}>Step 2 of {totalSteps}</div>}
           <h2 className={styles.stepTitle}>Tell us a bit about yourself</h2>
 
           <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>Age</label>
+            <label className={styles.sectionLabel}>How old are you?</label>
             <div className={`${styles.optionsList} ${styles.optionsGrid}`}>
               {AGE_GROUPS.map((group) => (
                 <button
@@ -159,7 +175,7 @@ export function SurveyForm() {
           </section>
 
           <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>Profession</label>
+            <label className={styles.sectionLabel}>What do you do professionally?</label>
             <div className={`${styles.optionsList} ${styles.optionsGrid}`}>
               {PROFESSIONS.map((option) => (
                 <button
@@ -176,7 +192,7 @@ export function SurveyForm() {
           </section>
 
           <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>Gender</label>
+            <label className={styles.sectionLabel}>What is your gender?</label>
             <div className={styles.optionsList}>
               {GENDERS.map((option) => (
                 <button
@@ -204,13 +220,13 @@ export function SurveyForm() {
 
       <div className={`${styles.stepCard} ${step < 2 ? styles.hiddenSection : ''}`}>
         <form className={styles.stepCardContent} onSubmit={handleSubmit}>
-          <div className={styles.stepIndicator}>Step 3 of {totalSteps}</div>
+          {step === 2 && <div className={styles.stepIndicator}>Step 3 of {totalSteps}</div>}
           
           <h2 className={styles.stepTitle}>Tell us what matters most</h2>
 
           <section className={styles.formSection}>
             <label className={styles.sectionLabel}>
-              Q1. How would you describe yourself?
+               How would you describe yourself?
             </label>
             <div className={styles.optionsList}>
               {ROLES.map((r) => (
@@ -229,7 +245,7 @@ export function SurveyForm() {
 
           <section className={styles.formSection}>
             <label className={styles.sectionLabel}>
-              Q2. What are you most excited to build?
+              What are you most excited to build?
             </label>
             <div className={styles.optionsList}>
               {INTERESTS.map((i) => (
@@ -248,7 +264,7 @@ export function SurveyForm() {
 
           <section className={styles.formSection}>
             <label className={styles.sectionLabel}>
-              Q3. What area are you most interested in?
+               What area are you most interested in?
             </label>
             <div className={styles.optionsList}>
               {INTEREST_AREAS.map((area) => (
@@ -267,7 +283,7 @@ export function SurveyForm() {
 
           <section className={styles.formSection}>
             <label className={styles.sectionLabel}>
-              Q4. Additional thoughts? (Optional)
+             Additional thoughts? (Optional)
             </label>
             <textarea
               className={styles.textArea}

@@ -1,7 +1,7 @@
 .surveyContainer {
   width: 100%;
   max-width: 600px;
-  margin: 2rem auto;
+  margin: 1rem auto;
   padding: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   
@@ -11,11 +11,10 @@
 
 .stepCard {
   width: 100%;
-  padding: 0rem;
-  margin-bottom: 1.75rem;
-  border-radius: 1.5rem;
-  
-  
+  padding: 2rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0rem;
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .stepCard:last-child {
@@ -26,7 +25,19 @@
 .stepCardContent {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.6rem;
+}
+
+.stepCardHeader {
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stepCard:first-of-type .stepCardHeader {
+  border-bottom: none;
+  margin-bottom: 1rem;
+  padding-bottom: 0;
 }
 
 .hiddenSection {
@@ -34,13 +45,13 @@
 }
 
 .surveyHeader {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   text-align: left;
 }
 
 .surveyTitle {
   font-family: var(--font-instrument-serif), serif;
-  font-size: 2.6rem;
+  font-size: 2.7rem;
   font-weight: 400;
   color: var(--text-primary);
   margin-bottom: 0.75rem;
@@ -54,7 +65,7 @@
   color: var(--text-secondary);
   line-height: 1.45;
   max-width: 600px;
-  margin: 0 0 1.75rem;
+  margin: 0 0 0.75rem;
   opacity: 0.8;
   text-align: left;
 }
@@ -64,7 +75,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1.25rem;
+  gap: 0.8rem;
 }
 
 .stepIndicator {
@@ -82,9 +93,10 @@
   font-size: 2.6rem;
   font-weight: 400;
   line-height: 1.2;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   color: var(--text-primary);
   letter-spacing: -0.03em;
+  
 }
 
 .stepSubtitle {
@@ -162,15 +174,22 @@
 }
 
 .formSection {
-  margin: 0;
-  padding: 0;
+  margin: 0 -2rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.formSection:first-of-type {
+  margin: 0 -2rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fieldGroup {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
 }
 
 .textArea {
@@ -192,7 +211,7 @@
 .floatingInputGroup {
   position: relative;
   width: 100%;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
 }
 
 .floatingInputField {
@@ -226,47 +245,69 @@
 }
 
 .formSection+.formSection {
-  margin-top: 2rem;
+  margin-top: 0;
 }
 
 .sectionLabel {
   font-family: var(--font-geist-sans), sans-serif;
   display: block;
-  font-size: 1.225rem;
-  font-weight: 400;
-  color: var(--text-primary);
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: linear-gradient(90deg, #c41d1d, #9ca3af);
   letter-spacing: -0.04em;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
 }
 
 .optionsList {
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .stepTwoCard .optionsList {
-  gap: 0.3rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .optionsGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .stepTwoCard .optionsGrid {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .stepTwoCard .optionButton {
-  padding: 0.65rem 0.95rem;
+  padding: 0.6rem 1rem;
   font-size: 0.85rem;
   gap: 0.75rem;
+  justify-content: center;
+  margin: 0;
 }
 
 .stepTwoCard .sectionLabel {
   font-size: 1rem;
+}
+
+.stepCard:last-of-type .sectionLabel {
+  font-size: 1rem;
+}
+
+.stepCard:last-of-type .optionButton {
+  font-size: 0.85rem;
 }
 
 .optionsGrid .optionButton {
@@ -274,36 +315,65 @@
   gap: 0;
 }
 
+/* Bento box size variations */
+
+/* Pinterest masonry - items flow naturally down columns */
+
+/* Step 3 Centered Layout */
+.stepCard:not(.stepTwoCard) .optionsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.stepCard:not(.stepTwoCard) .optionsList .optionButton {
+  justify-content: center;
+  margin: 0;
+}
+
 .optionsGrid .selectionDot {
   display: none;
 }
 
-.optionsGrid .optionSelected {
-  border-color: #22c55e !important;
-  background: rgba(34, 197, 94, 0.08) !important;
+.stepCard:not(.stepTwoCard) .optionsList .selectionDot {
+  display: none;
 }
 
 .optionButton {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 1rem;
-  padding: 0.875rem 1.25rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.75rem;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-size: 0.9375rem;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Buttons size to content */
+.optionButton:nth-child(-n+3) {
+  flex-basis: auto;
+}
+
+.optionButton:nth-child(n+4):nth-child(-n+7) {
+  flex-basis: auto;
+}
+
+.optionButton:nth-child(n+8) {
+  flex-basis: auto;
 }
 
 .selectionDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
+  display: none;
 }
 
 .dotSelected {
@@ -317,8 +387,8 @@
 }
 
 .optionSelected {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.08) !important;
 }
 
 .textArea:focus {
@@ -328,7 +398,7 @@
 
 .submitButton {
   width: 100%;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   background: #fff;
   color: #000;
   border: none;
@@ -364,13 +434,13 @@
 
 .successMessage {
   text-align: center;
-  padding: 2rem 0;
+  padding: 1rem 0;
   animation: fadeIn 0.4s ease-out;
 }
 
 .successIcon {
   font-size: 3rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 @keyframes fadeIn {
@@ -420,7 +490,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 0.8rem;
 }
 
 /* ✨ Highlight word (matters) */
@@ -440,7 +510,7 @@
 }
 
 .surveyDescriptionend {
-  margin-top: 8rem;
+  margin-top: 1.5rem;
   font-size: 0.8rem;
   color: var(--text-secondary);
   opacity: 0.5;
@@ -451,11 +521,6 @@ input.textArea {
   min-height: auto;
   height: 44px;
   resize: none;
-}
-
-/* 🎯 Better spacing between sections */
-.formSection+.formSection {
-  margin-top: 2rem;
 }
 
 /* 💫 Subtle hover polish for inputs */
@@ -490,4 +555,35 @@ input.textArea {
   text-align: center;
 
 
+}
+
+/* 📱 Mobile responsive text sizes */
+@media (max-width: 640px) {
+  .stepCard {
+    padding: 0.5rem;
+  }
+
+  .sectionLabel {
+    font-size: 1.1rem;
+  }
+
+  .stepTitle {
+    font-size: 1.85rem;
+  }
+
+  .surveyTitle {
+    font-size: 2.45rem;
+  }
+
+  .surveyTagline {
+    font-size: 1rem;
+  }
+
+  .stepTwoCard .sectionLabel {
+    font-size: 0.875rem;
+  }
+
+  .formSection {
+    padding: 1rem 0;
+  }
 }
