@@ -1,18 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import styles from './survey-form.module.css';
 import { supabase } from '@/utils/supabase';
 
-const ROLES = ['Developer', 'Designer', 'Founder', 'Product Manager', 'Student', 'Other'];
-const INTERESTS = ['AI Agents', 'Real-time Apps', 'Deployment', 'Database', 'Auth', 'Scalability'];
-const INTEREST_AREAS = ['AI', 'Realtime', 'Database', 'Auth', 'Deployment', 'Product'];
-const AGE_GROUPS = ['<18', '18-22', '23-27', '28-34', '35-46', '47+'];
-const PROFESSIONS = ['Corporate', 'Government', 'Startup', 'Student', 'Freelance', 'Other'];
-const GENDERS = ['Male', 'Female', 'Other'];
+const AGE_GROUPS = ['2000s', '1990s', '1980s or before'];
+const PROFESSIONS = ['Startups or Business', 'Corporate', 'Other', 'To be hired'];
+const ROLES = ['Developer / Engineer', 'Designer / Creative', 'Product / Founder'];
+const INTEREST_AREAS = ['AI & Automation', 'Real-time & UX', 'Scale & Database'];
+const EXCITED_TO_BUILD = ['AI Agents & LLMs', 'Real-time Interfaces', 'Scalable Cloud Infra'];
 
 export function SurveyForm() {
-  const [role, setRole] = useState('');
   const [interests, setInterests] = useState([]);
   const [feedback, setFeedback] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -20,30 +20,28 @@ export function SurveyForm() {
   const [submitError, setSubmitError] = useState(null);
   const [countdown, setCountdown] = useState(7);
   const [step, setStep] = useState(0);
-  const totalSteps = 3;
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
 
   const [email, setEmail] = useState('');
   const [ageGroup, setAgeGroup] = useState('');
   const [profession, setProfession] = useState('');
-  const [gender, setGender] = useState('');
   const [interestArea, setInterestArea] = useState('');
   const surveyRef = useRef(null);
 
-  const toggleInterest = (interest) => {
-    setInterests((prev) =>
-      prev.includes(interest)
-        ? prev.filter((i) => i !== interest)
-        : [...prev, interest]
-    );
-  };
-
-  const isValidEmail = (value) => /\S+@\S+\.\S+/.test(value);
+  const [coordinate, setCoordinate] = useState(null);
 
   useEffect(() => {
-    if (step === 2 && surveyRef.current) {
-      surveyRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
+    if (interestArea && interestArea.startsWith('(')) {
+      const match = interestArea.match(/\((\d+),\s*(\d+)\)/);
+      if (match) {
+        setCoordinate({ x: parseInt(match[1]), y: parseInt(match[2]) });
+      }
+    } else {
+      setCoordinate(null);
     }
-  }, [step]);
+  }, [interestArea]);
+
+  const isValidEmail = (value) => /\S+@\S+\.\S+/.test(value);
 
   useEffect(() => {
     if (!submitted) return;
@@ -75,9 +73,9 @@ export function SurveyForm() {
         email,
         age_group: ageGroup,
         profession,
-        gender,
+        gender: null,
         interest_area: interestArea || null,
-        role,
+        role: null,
         interests,
         feedback: feedback || null,
       },
@@ -94,218 +92,419 @@ export function SurveyForm() {
     setIsSubmitting(false);
   };
 
+  const handleSelectOption = (setValue, val) => {
+    setValue(val);
+    setDirection(1);
+    setTimeout(() => {
+      setStep((prev) => Math.min(prev + 1, steps.length - 1));
+    }, 300);
+  };
+
+  const handleNext = () => {
+    setDirection(1);
+    setStep((prev) => Math.min(prev + 1, steps.length - 1));
+  };
+
+  const handleBack = () => {
+    setDirection(-1);
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleGraphClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = (1 - (e.clientY - rect.top) / rect.height) * 100;
+    
+    // Snap to nearest grid line intersection (multiples of 20)
+    const gridStep = 20;
+    const snappedX = Math.max(0, Math.min(100, Math.round(x / gridStep) * gridStep));
+    const snappedY = Math.max(0, Math.min(100, Math.round(y / gridStep) * gridStep));
+    
+    setCoordinate({ x: snappedX, y: snappedY });
+    setInterestArea(`(${snappedX}, ${snappedY})`);
+  };
+
+  const steps = [
+    {
+      id: 0,
+      type: 'email',
+      title: 'Help us create what actually matters.',
+      subtitle: 'Share your email and help us build better tools for your workflow.',
+    },
+    {
+      id: 1,
+      type: 'select',
+      field: 'ageGroup',
+      question: 'Which decade were you born?',
+      options: AGE_GROUPS,
+      value: ageGroup,
+      setValue: setAgeGroup,
+    },
+    {
+      id: 2,
+      type: 'select',
+      field: 'profession',
+      question: 'Which industry do you work in?',
+      options: PROFESSIONS,
+      value: profession,
+      setValue: setProfession,
+    },
+    {
+      id: 3,
+      type: 'banner',
+    },
+    {
+      id: 4,
+      type: 'graph',
+      field: 'interestArea',
+      question: 'Scale yourself on this graph',
+      xAxisLabel: 'Effort',
+      yAxisLabel: 'Impact',
+      value: interestArea,
+      setValue: setInterestArea,
+    },
+    {
+      id: 5,
+      type: 'select',
+      field: 'interests',
+      question: 'What are you most excited to build?',
+      options: EXCITED_TO_BUILD,
+      value: interests[0] || '',
+      setValue: (val) => setInterests([val]),
+    },
+    {
+      id: 6,
+      type: 'feedback',
+      question: 'Any additional thoughts?',
+      subtitle: 'We value your honest feedback (optional)',
+    }
+  ];
+
+  const totalSteps = steps.length;
+  const currentStepData = steps[step];
 
   if (submitted) {
     return (
       <div className={styles.surveyContainer}>
         <div className={styles.successMessage}>
           <div className={styles.successIcon}>🥳</div>
-          <h2 className={styles.surveyTitle}>Thank you!</h2>
+          <h2 className={styles.successTitle}>Thank you!</h2>
           <p className={styles.surveyDescription}>
-            Your feedback helps us make a huge difference. 
+            Your feedback helps us make a huge difference.
           </p>
           <p className={styles.surveyDescriptionend}>
-            Redirecting in <light>{countdown}</light> seconds...
+            Redirecting in <span>{countdown}</span> seconds...
           </p>
         </div>
       </div>
     );
   }
 
+  // Animation variants
+  const cardVariants = {
+    enter: (dir) => ({
+      x: dir > 0 ? 80 : -80,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        x: { type: 'spring', stiffness: 350, damping: 30 },
+        opacity: { duration: 0.25 },
+      },
+    },
+    exit: (dir) => ({
+      x: dir < 0 ? 80 : -80,
+      opacity: 0,
+      transition: {
+        x: { type: 'spring', stiffness: 350, damping: 30 },
+        opacity: { duration: 0.25 },
+      },
+    }),
+  };
+
+  const optionVariants = {
+    initial: { scale: 1, y: 0 },
+    hover: {
+      scale: 1.015,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      borderColor: 'rgba(255, 255, 255, 0.25)',
+      transition: { type: 'spring', stiffness: 400, damping: 15 }
+    },
+    tap: {
+      scale: 0.985,
+      transition: { type: 'spring', stiffness: 400, damping: 10 }
+    },
+  };
+
+  const getMarkerColorClasses = () => {
+    if (!coordinate) return { dot: '', ripple: '' };
+    const diff = coordinate.y - coordinate.x;
+    if (Math.abs(diff) === 0) {
+      return { dot: styles.dotYellow, ripple: styles.rippleYellow };
+    } else if (diff > 0) {
+      return { dot: styles.dotGreen, ripple: styles.rippleGreen };
+    } else {
+      return { dot: styles.dotRed, ripple: styles.rippleRed };
+    }
+  };
+  const markerColors = getMarkerColorClasses();
+
   return (
     <div ref={surveyRef} className={styles.surveyContainer}>
-
-      <div className={`${styles.stepCard} ${step !== 0 ? styles.hiddenSection : ''}`}>
-        <header className={styles.stepCardHeader}>
-          {step === 0 && <div className={styles.stepIndicator}>Step 1 of {totalSteps}</div>}
-          <h1 className={styles.surveyTitle}>
-            Help us create something that{' '}
-            <span className={styles.matters}>matters.</span>
-          </h1>
-          <p className={styles.surveyTagline}>
-            Share a few quick answers and help us build better tools for your workflow.
-          </p>
-          <div className={styles.floatingInputGroup}>
-            <input
-              id="email"
-              type="email"
-              className={`${styles.textArea} ${styles.floatingInputField}`}
-              placeholder=" "
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <label htmlFor="email" className={styles.floatingInputLabel}>
-              Email
-            </label>
-          </div>
-          {step === 0 && (
-            <button
-              type="button"
-              className={`${styles.navButton} ${isValidEmail(email) ? styles.startButton : ''}`}
-              onClick={() => setStep(1)}
-              disabled={!isValidEmail(email)}
-            >
-              Start
-            </button>
-          )}
-        </header>
+      {/* Sleek top progress bar */}
+      <div className={styles.progressBarWrapper}>
+        <div
+          className={styles.progressBar}
+          style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
+        />
       </div>
 
-      <div className={`${styles.stepCard} ${styles.stepTwoCard} ${step !== 1 ? styles.hiddenSection : ''}`}>
-        <form className={styles.stepCardContent} onSubmit={(e) => e.preventDefault()}>
-          {step === 1 && <div className={styles.stepIndicator}>Step 2 of {totalSteps}</div>}
-          <h2 className={styles.stepTitle}>Tell us a bit about yourself</h2>
-
-          <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>How old are you?</label>
-            <div className={`${styles.optionsList} ${styles.optionsGrid}`}>
-              {AGE_GROUPS.map((group) => (
+      <div className={styles.stepCardContainer}>
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={cardVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className={styles.stepCard}
+          >
+            {currentStepData.type === 'email' && (
+              <div className={styles.welcomeSection}>
+                <h1 className={styles.surveyTitle}>
+                  {currentStepData.title}
+                </h1>
+                <p className={styles.surveyTagline}>
+                  {currentStepData.subtitle}
+                </p>
+                <div className={styles.floatingInputGroup}>
+                  <input
+                    id="email"
+                    type="email"
+                    className={`${styles.textArea} ${styles.floatingInputField}`}
+                    placeholder=" "
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <label htmlFor="email" className={styles.floatingInputLabel}>
+                    Email Address
+                  </label>
+                </div>
                 <button
-                  key={group}
                   type="button"
-                  className={`${styles.optionButton} ${ageGroup === group ? styles.optionSelected : ''}`}
-                  onClick={() => setAgeGroup(group)}
+                  className={`${styles.navButton} ${isValidEmail(email) ? styles.startButton : ''}`}
+                  onClick={handleNext}
+                  disabled={!isValidEmail(email)}
                 >
-                  <span className={`${styles.selectionDot} ${ageGroup === group ? styles.dotSelected : ''}`} />
-                  {group}
+                  Start
                 </button>
-              ))}
-            </div>
-          </section>
+              </div>
+            )}
 
-          <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>What do you do professionally?</label>
-            <div className={`${styles.optionsList} ${styles.optionsGrid}`}>
-              {PROFESSIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`${styles.optionButton} ${profession === option ? styles.optionSelected : ''}`}
-                  onClick={() => setProfession(option)}
-                >
-                  <span className={`${styles.selectionDot} ${profession === option ? styles.dotSelected : ''}`} />
-                  {option}
-                </button>
-              ))}
-            </div>
-          </section>
+            {currentStepData.type === 'select' && (
+              <div className={styles.questionSection}>
+                <h2 className={styles.questionTitle}>{currentStepData.question}</h2>
+                <div className={styles.verticalOptionsList}>
+                  {currentStepData.options.map((option) => {
+                    const isSelected = currentStepData.value === option;
+                    return (
+                      <motion.button
+                        key={option}
+                        type="button"
+                        variants={optionVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        className={`${styles.optionButton} ${isSelected ? styles.optionSelected : ''}`}
+                        onClick={() => handleSelectOption(currentStepData.setValue, option)}
+                      >
+                        <span className={`${styles.selectionDot} ${isSelected ? styles.dotSelected : ''}`} />
+                        <span className={styles.optionText}>{option}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                <div className={styles.questionFooter}>
+                  {step > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className={styles.textBackButton}
+                    >
 
-          <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>What is your gender?</label>
-            <div className={styles.optionsList}>
-              {GENDERS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`${styles.optionButton} ${gender === option ? styles.optionSelected : ''}`}
-                  onClick={() => setGender(option)}
-                >
-                  <span className={`${styles.selectionDot} ${gender === option ? styles.dotSelected : ''}`} />
-                  {option}
-                </button>
-              ))}
-            </div>
-          </section>
+                      <span>Back</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
-          
+            {currentStepData.type === 'graph' && (
+              <div className={styles.questionSection}>
+                <h2 className={styles.questionTitle}>{currentStepData.question}</h2>
+                
+                <div className={styles.graphContainer}>
+                  <div className={styles.yAxisLabelText}>{currentStepData.yAxisLabel}</div>
+                  
+                  <div className={styles.graphWrapper}>
+                    <div className={styles.yAxisTicks}>
+                      <span>100</span>
+                      <span>50</span>
+                      <span>0</span>
+                    </div>
+                    
+                    <div 
+                      className={styles.graphGrid} 
+                      onClick={handleGraphClick}
+                    >
+                      <div className={styles.gridLinesContainer}>
+                        {[...Array(4)].map((_, i) => (
+                          <div key={`v-${i}`} className={styles.verticalGridLine} style={{ left: `${(i + 1) * 20}%` }} />
+                        ))}
+                        {[...Array(4)].map((_, i) => (
+                          <div key={`h-${i}`} className={styles.horizontalGridLine} style={{ bottom: `${(i + 1) * 20}%` }} />
+                        ))}
+                      </div>
 
-          <div className={styles.actionRow}>
-            <button type="button" onClick={() => setStep(2)} className={styles.navButton}>
-              Next
-            </button>
-          </div>
-        </form>
-      </div>
+                      <div className={styles.diagonalLine} />
 
-      <div className={`${styles.stepCard} ${step < 2 ? styles.hiddenSection : ''}`}>
-        <form className={styles.stepCardContent} onSubmit={handleSubmit}>
-          {step === 2 && <div className={styles.stepIndicator}>Step 3 of {totalSteps}</div>}
-          
-          <h2 className={styles.stepTitle}>Tell us what matters most</h2>
+                      <div className={styles.yAxisLine}>
+                        <div className={styles.yAxisArrow} />
+                      </div>
+                      <div className={styles.xAxisLine}>
+                        <div className={styles.xAxisArrow} />
+                      </div>
 
-          <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>
-               How would you describe yourself?
-            </label>
-            <div className={styles.optionsList}>
-              {ROLES.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  className={`${styles.optionButton} ${role === r ? styles.optionSelected : ''}`}
-                  onClick={() => setRole(r)}
-                >
-                  <span className={`${styles.selectionDot} ${role === r ? styles.dotSelected : ''}`} />
-                  {r}
-                </button>
-              ))}
-            </div>
-          </section>
+                      {coordinate && (
+                        <motion.div
+                          className={styles.graphMarker}
+                          initial={{ scale: 0, left: `${coordinate.x}%`, bottom: `${coordinate.y}%`, x: '-50%', y: '50%' }}
+                          animate={{ scale: 1, left: `${coordinate.x}%`, bottom: `${coordinate.y}%`, x: '-50%', y: '50%' }}
+                          transition={{
+                            type: 'spring',
+                            stiffness: 280,
+                            damping: 16,
+                            mass: 0.6
+                          }}
+                        >
+                          <div className={`${styles.markerRipple} ${markerColors.ripple}`} />
+                          <div className={`${styles.markerDot} ${markerColors.dot}`} />
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className={styles.xAxisRow}>
+                    <div className={styles.xAxisTicks}>
+                      <span>0</span>
+                      <span>50</span>
+                      <span>100</span>
+                    </div>
+                    <div className={styles.xAxisLabelText}>{currentStepData.xAxisLabel}</div>
+                  </div>
+                </div>
 
-          <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>
-              What are you most excited to build?
-            </label>
-            <div className={styles.optionsList}>
-              {INTERESTS.map((i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`${styles.optionButton} ${interests.includes(i) ? styles.optionSelected : ''}`}
-                  onClick={() => toggleInterest(i)}
-                >
-                  <span className={`${styles.selectionDot} ${interests.includes(i) ? styles.dotSelected : ''}`} />
-                  {i}
-                </button>
-              ))}
-            </div>
-          </section>
+                {coordinate && (
+                  <div className={styles.coordinateDisplay}>
+                    Selected Position: <span className={styles.coordValue}>X: {coordinate.x}, Y: {coordinate.y}</span>
+                  </div>
+                )}
 
-          <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>
-               What area are you most interested in?
-            </label>
-            <div className={styles.optionsList}>
-              {INTEREST_AREAS.map((area) => (
-                <button
-                  key={area}
-                  type="button"
-                  className={`${styles.optionButton} ${interestArea === area ? styles.optionSelected : ''}`}
-                  onClick={() => setInterestArea(area)}
-                >
-                  <span className={`${styles.selectionDot} ${interestArea === area ? styles.dotSelected : ''}`} />
-                  {area}
-                </button>
-              ))}
-            </div>
-          </section>
+                <div className={styles.questionFooter}>
+                  {step > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className={styles.textBackButton}
+                    >
+                      <span>Back</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.navButton}
+                    onClick={handleNext}
+                    disabled={!coordinate}
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
 
-          <section className={styles.formSection}>
-            <label className={styles.sectionLabel}>
-             Additional thoughts? (Optional)
-            </label>
-            <textarea
-              className={styles.textArea}
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-            />
-          </section>
+            {currentStepData.type === 'banner' && (
+              <div className={styles.duoBannerSection}>
+                <div className={styles.duoMascotContainer}>
+                  <motion.div
+                    className={styles.duoMascot}
+                    animate={{
+                      y: [0, -12, 0],
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 2,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    🦉
+                  </motion.div>
+                  <div className={styles.duoSpeechBubble}>
+                    <p>That's all about yourself! Now let's get to the questions.</p>
+                  </div>
+                </div>
+                <div className={`${styles.questionFooter} ${styles.justifyEnd}`}>
+                  <button
+                    type="button"
+                    className={styles.navButton}
+                    onClick={handleNext}
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
 
-          {submitError && (
-            <p className={styles.errorText}>{submitError}</p>
-          )}
+            {currentStepData.type === 'feedback' && (
+              <form onSubmit={handleSubmit} className={styles.feedbackSection}>
+                <h2 className={styles.questionTitle}>{currentStepData.question}</h2>
+                <p className={styles.stepSubtitle}>{currentStepData.subtitle}</p>
+                <textarea
+                  className={styles.textArea}
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="Tell us what you think..."
+                />
 
-          <div className={styles.actionRow}>
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={!role || interests.length === 0 || !interestArea || isSubmitting}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Survey'}
-            </button>
-          </div>
-        </form>
+                {submitError && (
+                  <p className={styles.errorText}>{submitError}</p>
+                )}
+
+                <div className={styles.questionFooter}>
+                  {step > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className={styles.textBackButton}
+                    >
+                      <ArrowLeft size={16} />
+                      <span>Back</span>
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className={styles.submitButton}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Survey'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
